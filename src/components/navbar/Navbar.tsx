@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { FiMessageSquare } from "react-icons/fi";
 
-export default function Navbar() {
+export default function Navbar(props: {name: string | null , image: string}) {
     const [showDropdown, setShowDropDown] = useState(false);
 
     const toggleDropdown = () => {
@@ -16,10 +16,10 @@ export default function Navbar() {
             </p>
 
             <div className="flex justify-center items-center space-x-3">
-                <img src="/non-user.png" alt="User Profile" className="w-8 h-8" />
+                <img src={props.image} alt="User Profile" className="w-8 h-8 rounded-full" />
                 <div className="flex flex-col justify-start items-start">
                     <p className="text-sm font-semibold tracking-wide">Welcome back!</p>
-                    <p className="text-sm font-medium text-white/70">Chandan Khamitkar</p>
+                    <p className="text-sm font-medium text-white/70">{props.name}</p>
                 </div>
 
             </div>

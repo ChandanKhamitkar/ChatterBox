@@ -4,15 +4,18 @@ import Typing from "@/components/loading/Typing";
 import Navbar from "@/components/navbar/Navbar";
 import TopRightNotify from "@/components/notification/TopRightNotify";
 import { LuSend } from "react-icons/lu";
+import { getUserSession } from '@/lib/session'
 
-export default function Page() {
+
+export default async function Page() {
     const userChatSelected = true;
+    const user = await getUserSession();
+    const { name, image } = user;
     return (
         <div className="w-full h-screen flex justify-around items-center relative">
 
             {/* Navbar */}
-            <Navbar/>
-
+            <Navbar name={name ?? null} image={image ?? "/non-user.png"}/>
             <div className="flex flex-col justify-center items-start space-y-4 mt-10">
                 <UserCard />
                 <UserCard />
