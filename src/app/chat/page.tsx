@@ -1,21 +1,100 @@
+'use client';
 import MsgBox from "@/components/chat/cards/MsgBox";
 import UserCard from "@/components/chat/cards/UserCard";
 import Typing from "@/components/loading/Typing";
 import Navbar from "@/components/navbar/Navbar";
 import TopRightNotify from "@/components/notification/TopRightNotify";
 import { LuSend } from "react-icons/lu";
-import { getUserSession } from '@/lib/session'
+import { useEffect, useRef, useState } from "react";
+import { User } from "next-auth";
+import io from 'socket.io-client';
+import axios from "axios";
+import { Message } from "@/lib/types";
 
 
-export default async function Page() {
-    const userChatSelected = true;
-    const user = await getUserSession();
-    const { name, image } = user;
+export default function Page() {
+    const [user, setUser] = useState<User>();
+    const [userChatSelected, setUserChatSelected] = useState(true);
+    const socket = useRef<any>(null);
+    const [currentUserId, setCurrentUserId] = useState<string>('');
+    const [messageInput, setMessageInput] = useState<string>('');
+    const [notifyMessages, setNotifyMessages] = useState<Message[]>([]);
+
+    useEffect(() => {
+        const fetchUserSession = async () => {
+            const res = await axios.get("/api/userSessionData");
+            if (res.data.success) {
+                console.log('session data : ', res.data.sessionData);
+                setUser(res.data.sessionData);
+                setCurrentUserId(res.data.sessionData.id);
+            }
+        }
+        fetchUserSession();
+    }, []);
+
+    useEffect(() => {
+        if (currentUserId) {
+            if (!socket.current) {
+                socket.current = io('http://localhost:5000');
+                socket.current.emit("set-user-id", currentUserId);
+
+                socket.current.on("new-message", (newMessage: any) => {
+                    console.log('new message : ', newMessage);
+                    setNotifyMessages((prev) => [...prev, newMessage]);
+                });
+            }
+            fetchMessage();
+
+            return () => {
+                if (socket.current) {
+                    socket.current.off("new-message");
+                    socket.current.disconnect();
+                    socket.current = null;
+                }
+            }
+        }
+    }, [currentUserId]);
+
+    const fetchMessage = async () => {
+        try {
+            // const response = await axios.get(`/api/getMessages/${currentUserId}`);
+
+            // if (response.data.success) {
+            //     // reflect in dropdown OR navbar
+            // }
+
+        } catch (error) {
+            console.error('Error fetching messages: ', error);
+        }
+    };
+
+    const handleSendMessages = () => {
+        if (messageInput.trim() !== "") {
+            // also update in database
+            console.log('updated noify message length = ', notifyMessages.length);
+            socket.current.emit('message', {
+                id: '123',
+                senderId: currentUserId,
+                receiverId: user?.email === 'khamitkarsaichandan1035@gmail.com' ? 'khamitkar.dev@gmail.com' : 'khamitkarsaichandan1035@gmail.com',
+                msg: messageInput,
+                image: user?.image,
+                name: user?.name
+            });
+            setMessageInput('');
+        }
+    };
+
+    useEffect(() => {
+        setTimeout(() => {
+            setNotifyMessages([]);
+        }, 5000);
+    }, [notifyMessages]);
+
     return (
         <div className="w-full h-screen flex justify-around items-center relative">
 
             {/* Navbar */}
-            <Navbar name={name ?? null} image={image ?? "/non-user.png"}/>
+            <Navbar name={user?.name ?? null} image={user?.image ?? "/non-user.png"} />
             <div className="flex flex-col justify-center items-start space-y-4 mt-10">
                 <UserCard />
                 <UserCard />
@@ -53,27 +132,33 @@ export default async function Page() {
 
                         {/* User text input */}
                         <div className="flex justify-between items-center w-full self-end space-x-6 mt-10">
-                            <div className="min-h-11 flex-1 bg-[#444756] rounded-xl shadow-lg text-left  px-6 py-3">
+                            {/* <div className="min-h-11 flex-1 bg-[#444756] rounded-xl shadow-lg text-left  px-6 py-3">
                                 <p className="text-white/60 text-base text-left">Type your message here...</p>
-                            </div>
+                            </div> */}
+                            <input
+                                value={messageInput}
+                                onChange={(e) => {
+                                    setMessageInput(e.target.value);
+                                }} type="text" placeholder="Type your message here..." className="min-h-11 flex-1 bg-[#444756] rounded-xl shadow-lg px-6 py-3 placeholder-white/60 text-left outline-none hover:border-2 hover:border-blue-500" />
 
-                            <div className="flex justify-center items-center rounded-xl bg-[#1B91FF] w-11 h-11 text-white cursor-pointer hover:scale-105 transition-all duration-200">
+                            <div onClick={handleSendMessages} className="flex justify-center items-center rounded-xl bg-[#1B91FF] w-11 h-11 text-white cursor-pointer hover:scale-105 transition-all duration-200">
                                 <LuSend />
                             </div>
-
                         </div>
-
                     </div>
                 }
             </div>
 
             {/* Notify */}
-            <div className="absolute top-20 right-10 flex flex-col space-y-1 items-center">
-                <TopRightNotify/>
-                <TopRightNotify/>
-                <TopRightNotify/>
-                <TopRightNotify/>
-            </div>
+            {
+                notifyMessages.length > 0 && <div  className="absolute top-20 right-10 flex flex-col space-y-1 items-center">
+                    {
+                        notifyMessages.map((item, index) => <TopRightNotify senderImage={item.image} senderName={item.name} senderMsg={item.msg} key={index} />)
+                    }
+                    
+                </div>
+            }
+
         </div>
     )
 };
