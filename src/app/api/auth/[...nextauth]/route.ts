@@ -29,11 +29,14 @@ const authOption: NextAuthOptions = {
             },
             create: {
                 email: profile.email,
-                name: profile.name ?? "Anonymous"
-            },
-            update: {
-                ...(profile.name && { name: profile.name })
-            } 
+                name: profile.name ?? "Anonymous",
+                image: profile.image
+              },
+              update: {
+                ...(profile.name && { name: profile.name }),
+                image: profile.image
+              }
+              
         })
         return true
      },
