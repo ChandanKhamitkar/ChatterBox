@@ -118,7 +118,8 @@ export default function Page() {
     const fetchChatList = async () => {
         try {
             const res = await axios.post(`/api/chatList`, { oppId: currentUserId });
-            setChatList((prev) => [...prev, res.data.result]);
+            const chatItems = res.data.result;
+            setChatList((prev) => [...prev, ...chatItems]);
 
         } catch (error) {
             console.error('Error fetching chat list: ', error);
@@ -130,7 +131,6 @@ export default function Page() {
             const res = await axios.post(`/api/getUnreadMessages`, { userId: currentUserId });
             const items = res.data.list;
             if (items.length > 0) {
-                console.log('Drop down list : ', items);
                 setDropdownItems((prev) => [...prev, ...items]);
             }
         } catch (error) {
