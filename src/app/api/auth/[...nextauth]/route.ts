@@ -23,6 +23,7 @@ const authOption: NextAuthOptions = {
             throw new Error('No Profile')
         }
 
+        const profileData = profile as any;
         await prisma.user.upsert({
             where:{
                 email: profile.email,
@@ -30,11 +31,11 @@ const authOption: NextAuthOptions = {
             create: {
                 email: profile.email,
                 name: profile.name ?? "Anonymous",
-                image: profile.image
+                image: profileData.picture
               },
               update: {
                 ...(profile.name && { name: profile.name }),
-                image: profile.image
+                image: profileData.picture
               }
               
         })
@@ -46,6 +47,8 @@ const authOption: NextAuthOptions = {
             const user = await prisma.user.findUnique({
                 where: {
                     email: profile.email,
+                    name: profile.name,
+                    image: profile.image
                 },
             })
             if(!user){

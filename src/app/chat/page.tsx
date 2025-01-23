@@ -55,7 +55,7 @@ export default function Page() {
                     console.log('new message : ', newMessage);
 
                     setNotifyMessages((prev) => [...prev, { id: newMessage.notifyId, msg: newMessage.msg, msgId: newMessage.msgId, senderId: newMessage.senderId, receiverId: newMessage.receiverId, name: newMessage.name, image: newMessage.image }]);
-                    console.log('is user chat selecte: ', userChatSelected);
+                    console.log('is user chat selecte: ', userChatSelected, " recevier id = ", selectedChat.id);
                     // if (userChatSelected) {
                         setChatMessage((prevMessages) => [
                             ...prevMessages,
@@ -67,6 +67,7 @@ export default function Page() {
                             },
                         ]);
                         // also toogle notifiaction of the message to true
+                        // if the userChatSelected == true && receiver-id also same then toggle the notify to true ... 
                     // }
                 });
 
@@ -83,9 +84,7 @@ export default function Page() {
                 });
             }
 
-            if (userChatSelected) {
-                fetchChatList();
-            }
+            fetchChatList();
             fetchDropDownItems();
 
             return () => {
@@ -129,9 +128,10 @@ export default function Page() {
     const fetchDropDownItems = async () => {
         try {
             const res = await axios.post(`/api/getUnreadMessages`, { userId: currentUserId });
-
-            if (res.data.list.length > 0) {
-                setDropdownItems((prev) => [...prev, res.data.list]);
+            const items = res.data.list;
+            if (items.length > 0) {
+                console.log('Drop down list : ', items);
+                setDropdownItems((prev) => [...prev, items]);
             }
         } catch (error) {
             console.error('Error in fetchign dropdown items: ', error);
@@ -187,6 +187,7 @@ export default function Page() {
                     name: res.data.data.name,
                     image: res.data.data.image
                 }
+                // Chatlist = the friends list that will be visible on the left side of the screen.
                 setChatList((prev) => [...prev, newFriend]);
             }
         } catch (error) {
@@ -261,7 +262,7 @@ export default function Page() {
                     <div className="w-full h-full flex justify-center items-center flex-col ">
                         {/* Chat user details */}
                         <div className="flex justify-start items-center space-x-2 mb-6 self-baseline">
-                            <img src={selectedChat?.image != '' ? selectedChat?.image : "/non-user.png"} alt="User Profile" className="w-[56px] h-[56px] rounded" />
+                            <img src={selectedChat?.image != '' ? selectedChat?.image : "/non-user.png"} alt="User Profile" className="w-[56px] h-[56px] rounded-full" />
 
                             <div className="flex flex-col justify-center items-center">
                                 <p className="text-sm font-semibold tracking-wide">{selectedChat?.name}</p>

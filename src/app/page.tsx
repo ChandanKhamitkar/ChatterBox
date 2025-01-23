@@ -14,7 +14,7 @@ export default function Home() {
           <p className="text-xl text-white">Login to your account</p>
           <p className="text-base text-white/60">Enjoy chatting with your friends...</p>
         </div>
-        <div onClick={() => router.push('/api/auth/signin')} className="flex justify-center items-center rounded-3xl space-x-2 bg-white px-7 py-2 w-full text-center cursor-pointer transition-all duration-500 hover:scale-105">
+        <div onClick={() => signIn('google')} className="flex justify-center items-center rounded-3xl space-x-2 bg-white px-7 py-2 w-full text-center cursor-pointer transition-all duration-500 hover:scale-105">
           <img src={"/google.png"} alt="pGoogle logo" className="w-6 h-6 sm:w-4 sm:h-4" />
           <p className="text-black font-medium text-base ">Continue with Google</p>
         </div>
