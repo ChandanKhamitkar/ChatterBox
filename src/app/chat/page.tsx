@@ -31,6 +31,7 @@ export default function Page() {
     const [chatList, setChatList] = useState<ChatListTypes[]>([]);
     const [chatMessage, setChatMessage] = useState<ChatMessageType[]>([]);
     const [isTyping, setIsTyping] = useState(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
 
     useEffect(() => {
@@ -47,6 +48,7 @@ export default function Page() {
 
     useEffect(() => {
         if (currentUserId != '') {
+            setIsLoading(true);
             if (!socket.current) {
                 socket.current = io('http://localhost:5000');
                 socket.current.emit("set-user-id", currentUserId);
@@ -100,33 +102,38 @@ export default function Page() {
     }, [currentUserId]);
 
     const fetchMessage = async (friendUserId: string) => {
+        setIsLoading(true);
         try {
             const response = await axios.post(`/api/getMessages`, {
                 currentUserId: currentUserId,
                 friendUserId
             });
-
+            
             if (response.data.success) {
                 setChatMessage(response.data.data);
             }
-
+            
         } catch (error) {
             console.error('Error fetching messages: ', error);
         }
+        setIsLoading(false);
     };
-
+    
     const fetchChatList = async () => {
+        setIsLoading(true);
         try {
             const res = await axios.post(`/api/chatList`, { oppId: currentUserId });
             const chatItems = res.data.result;
             setChatList((prev) => [...prev, ...chatItems]);
-
+            
         } catch (error) {
             console.error('Error fetching chat list: ', error);
         }
+        setIsLoading(false);
     };
 
     const fetchDropDownItems = async () => {
+        setIsLoading(true);
         try {
             const res = await axios.post(`/api/getUnreadMessages`, { userId: currentUserId });
             const items = res.data.list;
@@ -136,6 +143,7 @@ export default function Page() {
         } catch (error) {
             console.error('Error in fetchign dropdown items: ', error);
         }
+        setIsLoading(false);
     };
 
     const handleSendMessages = async () => {
@@ -189,6 +197,7 @@ export default function Page() {
                 }
                 // Chatlist = the friends list that will be visible on the left side of the screen.
                 setChatList((prev) => [...prev, newFriend]);
+                setAddFriend('');
             }
         } catch (error) {
             console.error('Error in adding user.');
@@ -239,13 +248,12 @@ export default function Page() {
             {/* Chat list */}
             <div className="flex flex-col justify-center items-start space-y-4 mt-10">
                 <div className="min-w-[355px] px-6 py-2 border-2 border-gray-500 rounded-[18px] flex flex-row-reverse justify-between items-center space-x-3">
-                    <FiPlusCircle className="cursor-pointer size-9" onClick={() => {
-                        addNewFriend();
-                    }} />
                     <input type="text" value={addFriend} onChange={(e) => {
                         setAddFriend(e.target.value);
                     }} placeholder="Add your friend" className="flex-1 outline-none rounded-[18px] border-2 border-blue-500 px-4 py-2 bg-transparent text-white/70" />
-
+                    <FiPlusCircle className="cursor-pointer size-9" onClick={() => {
+                        addNewFriend();
+                    }} />
                 </div>
                 {
                     chatList.map((item, index) => <UserCard key={index} chatListItem={item} selectedUser={selectedChat?.id} callBackfn={chooseChat} />)
@@ -308,6 +316,9 @@ export default function Page() {
                 </div>
             }
 
+            {
+                isLoading && <div className="w-full h-full inset-0 bg-white/30 flex justify-center items-center"><p className="text-xl animate-pulse text-white">Loading...</p></div>
+            }
         </div>
     )
 };
