@@ -38,7 +38,7 @@ export default function Navbar(props:
                     showDropdown &&
                     <div className="min-w-[352px] h-fit bg-[#3E404C] bg-opacity-25 rounded-b-[14px] rounded-tl-[14px] shadow-lg space-y-2 absolute right-5 z-10">
                         {
-                            props.dropDownItems.map((item,index) => <DropDownChild key={index} senderImage={item.sender.image} senderName={item.sender.name} senderMsg={item.content}/>)
+                            props.dropDownItems.map((item : DropdownType,index) => <DropDownChild key={index} senderImage={item.sender?.image ?? '/non-user.png'} senderName={item.sender?.name ?? 'Anonymous' } senderMsg={item.content} />)
                         }
                     </div>
                 }
@@ -56,7 +56,7 @@ export const DropDownChild = (props: {senderImage: string, senderName: string, s
 
                 <div className="flex flex-col justify-start items-start">
                     <p className="text-sm font-semibold tracking-wide">{props.senderName}</p>
-                    <p className="text-sm font-light text-white/70">{props.senderMsg.length > 20 ? `${props.senderMsg.substring(0, 20)}...` : props.senderMsg}</p>
+                    <p className="text-sm font-light text-white/70">{props.senderMsg?.length > 20 ? `${props.senderMsg.substring(0, 20)}...` : props.senderMsg}</p>
                 </div>
             </div>
 

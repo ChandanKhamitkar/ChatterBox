@@ -131,7 +131,7 @@ export default function Page() {
             const items = res.data.list;
             if (items.length > 0) {
                 console.log('Drop down list : ', items);
-                setDropdownItems((prev) => [...prev, items]);
+                setDropdownItems((prev) => [...prev, ...items]);
             }
         } catch (error) {
             console.error('Error in fetchign dropdown items: ', error);
