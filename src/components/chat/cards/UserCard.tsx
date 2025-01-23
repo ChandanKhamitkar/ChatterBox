@@ -7,7 +7,7 @@ interface UserCardProps {
 }
 export default function UserCard({ chatListItem, selectedUser, callBackfn } : UserCardProps) {
     return (
-        <div onClick={() => callBackfn(chatListItem.id, chatListItem.name, chatListItem.image)} className={`min-w-[355px] min-h-[87px] ${selectedUser == chatListItem.id ? 'bg-[#1B91FF]' : "bg-[#3E404C]"} rounded-[18px] px-6 py-4 flex justify-between items-center`}>
+        <div onClick={() => callBackfn(chatListItem.id, chatListItem.name, chatListItem.image)} className={`w-full min-h-[87px] ${selectedUser == chatListItem.id ? 'bg-[#1B91FF]' : "bg-[#3E404C]"} rounded-[18px] px-6 py-4 flex justify-between items-center cursor-pointer`}>
 
             <div className="flex justify-center items-center space-x-2">
                 <img src={chatListItem.image ?? "/non-user.png"} alt="User Profile" className="w-[47px] h-[47px] rounded-full" />

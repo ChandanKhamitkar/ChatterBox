@@ -31,8 +31,8 @@ export default function Page() {
     const [chatList, setChatList] = useState<ChatListTypes[]>([]);
     const [chatMessage, setChatMessage] = useState<ChatMessageType[]>([]);
     const [isTyping, setIsTyping] = useState(false);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const fetchUserSession = async () => {
@@ -48,47 +48,66 @@ export default function Page() {
 
     useEffect(() => {
         if (currentUserId != '') {
-            setIsLoading(true);
-            if (!socket.current) {
-                socket.current = io('http://localhost:5000');
-                socket.current.emit("set-user-id", currentUserId);
+            const fetchData = async () => {
+                try {
+                    setIsLoading(true);
+                    if (!socket.current) {
+                        socket.current = io('http://localhost:5000');
+                        socket.current.emit("set-user-id", currentUserId);
 
-                socket.current.on("new-message", (newMessage: any) => {
-                    console.log('new message : ', newMessage);
+                        socket.current.on("new-message", async (newMessage: any) => {
+                            console.log('new message : ', newMessage);
 
-                    setNotifyMessages((prev) => [...prev, { id: newMessage.notifyId, msg: newMessage.msg, msgId: newMessage.msgId, senderId: newMessage.senderId, receiverId: newMessage.receiverId, name: newMessage.name, image: newMessage.image }]);
-                    console.log('is user chat selecte: ', userChatSelected, " recevier id = ", selectedChat.id);
-                    // if (userChatSelected) {
-                        setChatMessage((prevMessages) => [
-                            ...prevMessages,
-                            {
-                                id: newMessage.msgId,
-                                msg: newMessage.msg,
-                                senderId: newMessage.senderId,
-                                receiverId: newMessage.receiverId,
-                            },
-                        ]);
-                        // also toogle notifiaction of the message to true
-                        // if the userChatSelected == true && receiver-id also same then toggle the notify to true ... 
-                    // }
-                });
+                            setNotifyMessages((prev) => [...prev, { id: newMessage.notifyId, msg: newMessage.msg, msgId: newMessage.msgId, senderId: newMessage.senderId, receiverId: newMessage.receiverId, name: newMessage.name, image: newMessage.image }]);
+                            console.log('is user chat selected: ', userChatSelected, " recevier id = ", selectedChat.id);
+                            // if (userChatSelected) {
+                            setChatMessage((prevMessages) => [
+                                ...prevMessages,
+                                {
+                                    id: newMessage.msgId,
+                                    msg: newMessage.msg,
+                                    senderId: newMessage.senderId,
+                                    receiverId: newMessage.receiverId,
+                                },
+                            ]);
+                            if (userChatSelected && selectedChat.id === newMessage.notifyId) {
+                                try {
+                                    const notifyRes = await axios.post('/toggleNotifyRead', {
+                                        notifyId: newMessage.notifyId
+                                    });
 
-                socket.current.on("typing", (details: any) => {
-                    if (details.senderId === selectedChat.id) {
-                        setIsTyping(true);
+                                } catch (error) {
+                                    console.error("Error in updating notification status of : ", newMessage.notifyId)
+                                }
+                            }
+                        });
+
+                        socket.current.on("typing", (details: any) => {
+                            if (details.senderId === selectedChat.id) {
+                                setIsTyping(true);
+                            }
+                        });
+
+                        socket.current.on("stoppedTyping", (details: any) => {
+                            if (details.senderId === selectedChat.id) {
+                                setIsTyping(false);
+                            }
+                        });
                     }
-                });
 
-                socket.current.on("stoppedTyping", (details: any) => {
-                    if (details.senderId === selectedChat.id) {
-                        setIsTyping(false);
-                    }
-                });
+                    await Promise.all([
+                        fetchChatList(),
+                        fetchDropDownItems()
+                    ]);
+                } catch (error) {
+                    console.error("Error in setting socket or fetching data: ", error);
+                }
+                finally{
+                    setIsLoading(false);
+                }
             }
 
-            fetchChatList();
-            fetchDropDownItems();
-
+            fetchData(); // imp
             return () => {
                 if (socket.current) {
                     socket.current.off("new-message");
@@ -102,38 +121,33 @@ export default function Page() {
     }, [currentUserId]);
 
     const fetchMessage = async (friendUserId: string) => {
-        setIsLoading(true);
         try {
             const response = await axios.post(`/api/getMessages`, {
                 currentUserId: currentUserId,
                 friendUserId
             });
-            
+
             if (response.data.success) {
                 setChatMessage(response.data.data);
             }
-            
+
         } catch (error) {
             console.error('Error fetching messages: ', error);
         }
-        setIsLoading(false);
     };
-    
+
     const fetchChatList = async () => {
-        setIsLoading(true);
         try {
             const res = await axios.post(`/api/chatList`, { oppId: currentUserId });
             const chatItems = res.data.result;
             setChatList((prev) => [...prev, ...chatItems]);
-            
+
         } catch (error) {
             console.error('Error fetching chat list: ', error);
         }
-        setIsLoading(false);
     };
 
     const fetchDropDownItems = async () => {
-        setIsLoading(true);
         try {
             const res = await axios.post(`/api/getUnreadMessages`, { userId: currentUserId });
             const items = res.data.list;
@@ -143,7 +157,6 @@ export default function Page() {
         } catch (error) {
             console.error('Error in fetchign dropdown items: ', error);
         }
-        setIsLoading(false);
     };
 
     const handleSendMessages = async () => {
@@ -225,6 +238,12 @@ export default function Page() {
         }, 5000);
     }, [notifyMessages]);
 
+    useEffect(() => {
+        if (chatContainerRef.current) {
+          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+       }, [chatMessage]);
+
     const handleTyping = debounce(() => {
         socket.current.emit("typing", {
             senderId: currentUserId,
@@ -246,8 +265,8 @@ export default function Page() {
             <Navbar name={user?.name ?? null} image={user?.image ?? "/non-user.png"} dropDownItems={dropdownItems} />
 
             {/* Chat list */}
-            <div className="flex flex-col justify-center items-start space-y-4 mt-10">
-                <div className="min-w-[355px] px-6 py-2 border-2 border-gray-500 rounded-[18px] flex flex-row-reverse justify-between items-center space-x-3">
+            <div className="w-[335px] flex flex-col justify-center items-start space-y-4 mt-10">
+                <div className="w-full px-6 py-2 border-2 border-gray-500 rounded-[18px] flex justify-between items-center space-x-3">
                     <input type="text" value={addFriend} onChange={(e) => {
                         setAddFriend(e.target.value);
                     }} placeholder="Add your friend" className="flex-1 outline-none rounded-[18px] border-2 border-blue-500 px-4 py-2 bg-transparent text-white/70" />
@@ -261,13 +280,13 @@ export default function Page() {
             </div>
 
             {/* chat container */}
-            <div className="min-w-[800px] min-h-[511px] mt-10 px-6 pt-6 pb-2 bg-gradient-to-b from-[rgba(62,64,76,0.08)] to-[rgba(145,150,178,0.22)] rounded-[18px] flex justify-start items-start">
+            <div className="min-w-[800px] min-h-[511px] mt-10 px-6 pt-6 pb-4 bg-gradient-to-b from-[rgba(62,64,76,0.08)] to-[rgba(145,150,178,0.22)] rounded-[18px] flex justify-start items-start">
                 {
                     !userChatSelected && <p className="w-full text-center text-white/70 tracking-wide text-lg self-center">No chat selected!!!</p>
                 }
                 {
                     userChatSelected &&
-                    <div className="w-full h-full flex justify-center items-center flex-col ">
+                    <div className="w-full h-[511px] flex justify-center items-center flex-col ">
                         {/* Chat user details */}
                         <div className="flex justify-start items-center space-x-2 mb-6 self-baseline">
                             <img src={selectedChat?.image != '' ? selectedChat?.image : "/non-user.png"} alt="User Profile" className="w-[56px] h-[56px] rounded-full" />
@@ -279,7 +298,7 @@ export default function Page() {
                         </div>
 
                         {/* Incoming & outgoing message */}
-                        <div className="w-full h-full flex-1 flex flex-col space-y-4 overflow-y-scroll">
+                        <div ref={chatContainerRef} className="w-full h-full flex-1 flex flex-col space-y-4 overflow-y-scroll p-2">
                             {
                                 chatMessage.map((item, index) => <MsgBox key={index} incoming={item.senderId !== currentUserId}
                                     outgoing={item.senderId === currentUserId} msg={item.msg} />)
@@ -317,7 +336,7 @@ export default function Page() {
             }
 
             {
-                isLoading && <div className="w-full h-full inset-0 bg-white/30 flex justify-center items-center"><p className="text-xl animate-pulse text-white">Loading...</p></div>
+                isLoading && <div className="w-full h-full inset-0 bg-black/70 flex justify-center items-center absolute z-50"><p className="text-lg animate-pulse text-white">Loading...</p></div>
             }
         </div>
     )
