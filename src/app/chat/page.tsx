@@ -83,13 +83,13 @@ export default function Page() {
                         });
 
                         socket.current.on("typing", (details: any) => {
-                            if (details.senderId === selectedChat.id) {
+                            if (details.senderId !== currentUserId) {
                                 setIsTyping(true);
                             }
                         });
 
                         socket.current.on("stoppedTyping", (details: any) => {
-                            if (details.senderId === selectedChat.id) {
+                            if (details.senderId !== currentUserId) {
                                 setIsTyping(false);
                             }
                         });
@@ -235,7 +235,7 @@ export default function Page() {
     useEffect(() => {
         setTimeout(() => {
             setNotifyMessages([]);
-        }, 5000);
+        }, 8000);
     }, [notifyMessages]);
 
     useEffect(() => {
