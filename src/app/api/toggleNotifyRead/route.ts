@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const messages = await prisma.notification.update({
+        await prisma.notification.update({
             where:{
                 id: notifyId
             },

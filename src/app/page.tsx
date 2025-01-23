@@ -1,11 +1,9 @@
 'use client';
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 
 
 export default function Home() {
-  const router = useRouter();
   return (
     <div className="flex justify-around items-center h-screen w-full p-10">
       <h1>Welcome to chatter box</h1>

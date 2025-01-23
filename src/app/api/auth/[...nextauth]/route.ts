@@ -16,9 +16,11 @@ const authOption: NextAuthOptions = {
   ], 
   callbacks: {
     redirect: ({url, baseUrl} : any ) => {
+        console.log(url);
         return `${baseUrl}/chat`;
-    },
-     async signIn({account, profile}){
+      },
+      async signIn({account, profile}){
+       console.log(account);
         if(!profile?.email){
             throw new Error('No Profile')
         }
@@ -43,6 +45,7 @@ const authOption: NextAuthOptions = {
      },
      session,
      async jwt({token, user, account, profile}) {
+      console.log(user, account);
         if(profile){
             const user = await prisma.user.findUnique({
                 where: {

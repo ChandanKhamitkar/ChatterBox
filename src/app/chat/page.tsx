@@ -52,7 +52,7 @@ export default function Page() {
                 try {
                     setIsLoading(true);
                     if (!socket.current) {
-                        socket.current = io('http://localhost:5000');
+                        socket.current = io(process.env.SOCKET_URL);
                         socket.current.emit("set-user-id", currentUserId);
 
                         socket.current.on("new-message", async (newMessage: any) => {
