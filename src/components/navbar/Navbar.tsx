@@ -10,10 +10,6 @@ export default function Navbar(props:
     }) {
     const [showDropdown, setShowDropDown] = useState(false);
 
-    const toggleDropdown = () => {
-        setShowDropDown(!showDropdown);
-    }
-
     return (
         <nav className="w-full mt-6 flex justify-between px-16 text-white self-start absolute top-0">
             <p className="text-lg font-semibold ">
