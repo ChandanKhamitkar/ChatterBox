@@ -6,7 +6,7 @@ import cors from "cors";
 const app = express();
 const httpServer = http.createServer(app);
 const corsOptions = {
-  origin: ["https://chatterbox-beta-v2.vercel.app/", "http://localhost:3000"],
+  origin: ["https://chatterbox-beta-v2.vercel.app", "http://localhost:3000"],
   methods: ["GET", "POST", "OPTIONS", "PUT", "POST"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
