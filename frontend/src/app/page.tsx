@@ -19,7 +19,7 @@ export default function Home() {
         <p className="w-fit rounded-md px-4 py-2 bg-[#424856] text-white font-medium text-xs shadow-2xl">Messaging Platform</p>
         <p className="font-semibold text-3xl sm:text-4xl lg:text-5xl leading-[55px] lg:leading-[70px] text-left"><span className="text-white">Say Hi!</span> <span className="text-[#CACFE9]">To Your <br />Friends & Family</span></p>
 
-        <div className="flex justify-center items-center space-x-5">
+        <div className="flex justify-center items-center space-x-5 z-10">
           <div onClick={() => signIn('google')} className="flex justify-center items-center rounded-3xl space-x-2 bg-white px-4 sm:px-7 py-3 w-fit text-center cursor-pointer transition-all duration-500 hover:scale-105 shadow-xl">
             <img src={"/google.png"} alt="pGoogle logo" className="w-4 h-4 sm:w-5 sm:h-5" />
             <p className="text-black font-medium text-xs lg:text-base ">Continue with Google</p>
